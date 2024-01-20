@@ -4,8 +4,9 @@
   "schema": {
     "name": "bb-component-SuperFieldRelationship",
     "friendlyName": "Super Field - Relationship",
-    "description": "A Boolean Input Field component for Budibase",
+    "description": "A Relationship Field component for Budibase",
     "icon": "Link",
+    "requiredAncestors" : ["form"],
     "settings": [
       {
         "type": "field/link",
@@ -52,23 +53,6 @@
         ]
       },
       {
-        "type": "boolean",
-        "label": "Disabled",
-        "key": "disabled",
-        "defaultValue": false
-      },
-      {
-        "type": "boolean",
-        "label": "Read only",
-        "key": "readonly",
-        "defaultValue": false,
-        "dependsOn": {
-          "setting": "disabled",
-          "value": true,
-          "invert": true
-        }
-      },
-      {
         "type": "select",
         "label": "Type",
         "key": "controlType",
@@ -88,6 +72,58 @@
             "value": "switch"
           }
         ]
+      },
+      {
+        "type" : "filter/relationship",
+        "key" :  "filter",
+        "label": "Filter",
+        "resetOn" : "field"
+      },
+      {
+        "type" : "number",
+        "key" : "limit",
+        "label" : "Limit",
+        "defaultValue" : 10
+      },
+      {
+        "type": "boolean",
+        "label": "Disabled",
+        "key": "disabled",
+        "defaultValue": false
+      },
+      {
+        "type": "boolean",
+        "label": "Read only",
+        "key": "readonly",
+        "defaultValue": false,
+        "dependsOn": {
+          "setting": "disabled",
+          "value": true,
+          "invert": true
+        }
+      },
+      {
+        "type" : "boolean",
+        "key"  : "showIcon",
+        "label": "Add Inline Icon"
+      },
+      {
+        "type" : "icon",
+        "key"  : "icon",
+        "label": "Icon",
+        "resetOn" : "showIcon",
+        "dependsOn" : "showIcon"
+      },
+      {
+        "type" : "boolean",
+        "key"  : "customButtons",
+        "label": "Add Buttons"
+      },
+      {
+        "type" : "buttonConfiguration",
+        "key"  : "buttons",
+        "nested" : true,
+        "dependsOn" : "customButtons"
       },
       {
         "tag" : "style",
