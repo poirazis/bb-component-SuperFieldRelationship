@@ -16,7 +16,7 @@
   export let filter
   export let validation
 
-  export let controlType
+  export let controlType = "select"
   export let customButtons
   export let buttons = [];
   export let buttonsQuiet;
@@ -74,7 +74,7 @@
 
   $: value = fieldState?.value ? fieldState.value : []
   $: error = fieldState?.error
-  $: linkValueType == "link" ? fetchDefinition(fieldSchema?.tableId) : null
+  $: linkValueType == "link" && fieldSchema.tableId ? fetchDefinition(fieldSchema?.tableId) : null
 
   $: if ( linkValueType == "link" && definition ) {
     innerValueColumn = "_id"
@@ -155,7 +155,7 @@
             }}
           {value}
           {fieldSchema}
-          tableId={tableId.tableId}
+          tableId={tableId?.tableId}
           valueColumn={innerValueColumn}
           labelColumn={innerLabelColumn}
           {filter},
