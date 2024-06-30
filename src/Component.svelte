@@ -10,7 +10,6 @@
     Provider,
     builderStore,
     componentStore,
-    API,
   } = getContext("sdk");
   const component = getContext("component");
 
@@ -18,9 +17,9 @@
   const formStepContext = getContext("form-step");
   const labelPos = getContext("field-group");
   const labelWidth = getContext("field-group-label-width");
+  const groupDisabled = getContext("field-group-disabled");
   const formApi = formContext?.formApi;
 
-  export let linkValueType = "link";
   export let field;
   export let filter;
   export let validation;
@@ -39,10 +38,9 @@
   export let autocomplete;
 
   export let tableId;
-  export let filterCustom;
-  export let limitCustom;
-  export let valueColumn;
   export let labelColumn;
+  export let valueColumn;
+  export let parentColumn;
 
   export let pickerColumns = [];
   export let searchColumns;
@@ -50,18 +48,15 @@
   export let multi;
   export let icon;
 
+  export let onChange;
+
   let formField;
   let formStep;
   let fieldState;
   let fieldApi;
   let fieldSchema;
   let value;
-  let cellState;
-  let definition;
-  let loaded;
   let innerLabelColumn = labelColumn;
-  let innerValueColumn;
-  let innerPickerColumns;
 
   $: formStep = formStepContext ? $formStepContext || 1 : 1;
 
@@ -82,22 +77,9 @@
   });
 
   $: value = fieldState?.value ? fieldState.value : [];
-  $: error = fieldState?.error;
-  $: linkValueType == "link" && fieldSchema.tableId
-    ? fetchDefinition(fieldSchema?.tableId)
-    : null;
 
-  $: if (linkValueType == "link" && definition) {
-    innerValueColumn = "_id";
-    innerLabelColumn = definition.primaryDisplay;
-    innerPickerColumns =
-      pickerColumns?.length > 0 ? pickerColumns : [{ name: innerLabelColumn }];
-  }
-
-  $: innerLimit = limitCustom ? limitCustom : 10;
   $: if (
     $builderStore.inBuilder &&
-    linkValueType == "link" &&
     fieldSchema?.tableId &&
     tableId?.tableId != fieldSchema?.tableId &&
     $componentStore.selectedComponentPath?.includes($component.id)
@@ -113,29 +95,23 @@
     normal: {
       ...$component.styles.normal,
       "flex-direction": labelPos == "left" ? "row" : "column",
-      gap: labelPos == "left" ? "0.85rem" : "0rem",
-      "grid-column": labelPos ? "span " + span : null,
+      "align-items": "stretch",
+      gap: labelPos == "left" ? "0.5rem" : "0rem",
+      "grid-column": labelPos ? "span " + span : "span 1",
       "--label-width":
         labelPos == "left" ? (labelWidth ? labelWidth : "6rem") : "auto",
     },
+  };
+
+  const handleChange = (e) => {
+    fieldApi?.setValue(e.detail);
+    onChange?.({ value: fieldState.value });
   };
 
   onDestroy(() => {
     fieldApi?.deregister();
     unsubscribe?.();
   });
-
-  const fetchDefinition = async (tableId) => {
-    try {
-      definition = await API.fetchTableDefinition(tableId);
-    } catch (error) {
-      definition = null;
-    }
-
-    if (!loaded) {
-      loaded = true;
-    }
-  };
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -153,61 +129,55 @@
       </label>
     {/if}
 
-    {#key loaded}
-      <div class="inline-cells">
-        <CellLink
-          bind:cellState
-          cellOptions={{
-            placeholder,
-            autocomplete,
-            readonly,
-            disabled,
-            defaultValue,
-            controlType,
-            role: "formInput",
-            icon: icon,
-            multi,
-            pickerColumns,
-            searchColumns,
-          }}
-          {value}
-          {fieldSchema}
-          tableId={tableId?.tableId}
-          valueColumn={innerValueColumn}
-          labelColumn={innerLabelColumn}
-          {filter}
-          ,
-          multi={linkValueType == "array" ||
-            (linkValueType == "link" &&
-              fieldSchema.relationshipType != "one-to-many")}
-          {innerLimit}
-          pickerColumns={innerPickerColumns ?? pickerColumns}
-          on:change={(e) => fieldApi?.setValue(e.detail)}
-        />
+    <div class="inline-cells">
+      <CellLink
+        cellOptions={{
+          placeholder,
+          autocomplete,
+          readonly: readonly || fieldState?.readonly,
+          disabled: disabled || groupDisabled || fieldState?.disabled,
+          defaultValue,
+          controlType,
+          padding: "0.5rem",
+          role: "formInput",
+          icon: icon,
+          multi,
+          pickerColumns,
+          searchColumns,
+        }}
+        {value}
+        {fieldSchema}
+        tableId={tableId?.tableId}
+        {valueColumn}
+        labelColumn={innerLabelColumn}
+        {parentColumn}
+        {filter}
+        multi={fieldSchema.relationshipType != "one-to-many"}
+        on:change={handleChange}
+      />
 
-        {#if customButtons && buttons?.length}
-          <div
-            class="spectrum-ActionGroup spectrum-ActionGroup--compact spectrum-ActionGroup--sizeM"
-          >
-            <Provider data={{ value: fieldState.value }}>
-              {#each buttons as { text, onClick, quiet, disabled, type }}
-                <BlockComponent
-                  type="plugin/bb-component-SuperButton"
-                  props={{
-                    quiet,
-                    disabled,
-                    size: "M",
-                    text,
-                    onClick,
-                    emphasized: true,
-                    selected: type == "cta",
-                  }}
-                ></BlockComponent>
-              {/each}
-            </Provider>
-          </div>
-        {/if}
-      </div>
-    {/key}
+      {#if customButtons && buttons?.length}
+        <div
+          class="spectrum-ActionGroup spectrum-ActionGroup--compact spectrum-ActionGroup--sizeM"
+        >
+          <Provider data={{ value: fieldState.value }}>
+            {#each buttons as { text, onClick, quiet, disabled, type }}
+              <BlockComponent
+                type="plugin/bb-component-SuperButton"
+                props={{
+                  quiet: buttonsQuiet,
+                  disabled,
+                  size: "M",
+                  text,
+                  onClick,
+                  emphasized: true,
+                  selected: type == "cta",
+                }}
+              ></BlockComponent>
+            {/each}
+          </Provider>
+        </div>
+      {/if}
+    </div>
   </div>
 </Block>

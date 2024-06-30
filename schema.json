@@ -6,61 +6,19 @@
     "friendlyName": "Super Field - Relationship",
     "description": "A Relationship Field component for Budibase",
     "icon": "Link",
-    "requiredAncestors" : ["form"],
+    "requiredAncestors": ["form"],
     "settings": [
-      {
-        "type": "select",
-        "label": "Value Type",
-        "key": "linkValueType",
-        "defaultValue": "link",
-        "placeholder": "Pick a Value type",
-        "options": [
-          {
-            "label" : "Budibase",
-            "value" : "link"
-          },
-          {
-            "label": "Number",
-            "value": "number"
-          },
-          {
-            "label": "String",
-            "value": "string"
-          },
-          {
-            "label": "Array",
-            "value": "array"
-          }
-        ]
-      },
       {
         "type": "field/link",
         "label": "Field",
         "key": "field",
-        "required": true,
-        "dependsOn" : { "setting" : "linkValueType", "value": "link"}
-
+        "required": true
       },
       {
-        "type": "field/string",
-        "label": "Field",
-        "key": "fieldString",
-        "required": true,
-        "dependsOn" : { "setting" : "linkValueType", "value": "string"}
-      },
-      {
-        "type": "field/number",
-        "label": "Field",
-        "key": "fieldNumber",
-        "required": true,
-        "dependsOn" : { "setting" : "linkValueType", "value": "number"}
-      },
-      {
-        "type": "field/array",
-        "label": "Field",
-        "key": "fieldArray",
-        "required": true,
-        "dependsOn" : { "setting" : "linkValueType", "value": "array"}
+        "type": "table",
+        "key": "tableId",
+        "label": "Related Table",
+        "hidden": true
       },
       {
         "type": "text",
@@ -88,13 +46,7 @@
         "type": "validation/link",
         "label": "Validation",
         "key": "validation",
-        "dependsOn" : { "setting" : "linkValueType", "value": "link"}
-      },
-      {
-        "type": "validation/string",
-        "label": "Validation",
-        "key": "validationCustom",
-        "dependsOn" : { "setting" : "linkValueType", "value": "string"}
+        "dependsOn": { "setting": "linkValueType", "value": "link" }
       },
       {
         "type": "event",
@@ -108,17 +60,17 @@
         ]
       },
       {
-        "type" : "filter/relationship",
-        "key" :  "filter",
-        "dependsOn" : { "setting" : "linkValueType", "value": "link"},
+        "type": "filter/relationship",
+        "key": "filter",
         "label": "Filter",
-        "resetOn" : "field"
+        "resetOn": "field"
       },
       {
         "type": "select",
         "label": "Control Type",
         "key": "controlType",
         "defaultValue": "select",
+        "resetOn": "field",
         "placeholder": "Pick an options type",
         "options": [
           {
@@ -126,34 +78,55 @@
             "value": "select"
           },
           {
-            "label": "Checkboxes",
-            "value": "checkbox"
+            "label": "Table Select",
+            "value": "tableSelect"
           },
           {
-            "label": "Switches",
-            "value": "switch"
+            "label": "Tree Select",
+            "value": "treeSelect"
           }
         ]
       },
-      { 
-        "type" : "columns",
+      {
+        "type": "columns",
         "key": "pickerColumns",
-        "label" : "Picker Columns",
-        "resetOn" : "tableId"
+        "label": "Picker Columns",
+        "resetOn": "tableId",
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "tableSelect"
+        }
       },
       {
-        "type" : "number",
-        "key" : "optionsArrangement",
-        "label" : "Columns",
-        "defaultValue" : 2,
-        "dependsOn" : {"setting": "controlType" , "value" : "select", "invert" : true }
+        "type": "field",
+        "key": "valueColumn",
+        "label": "Value Column",
+        "resetOn": "tableId",
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "treeSelect"
+        }
       },
       {
-        "type" : "number",
-        "key" : "limitItems",
-        "label" : "Limit Items",
-        "defaultValue" : 10,
-        "dependsOn" : {"setting": "controlType" , "value" : "select", "invert" : true }
+        "type": "field",
+        "key": "parentColumn",
+        "label": "Parent Column",
+        "resetOn": "tableId",
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "treeSelect"
+        }
+      },
+      {
+        "type": "number",
+        "key": "limitItems",
+        "label": "Limit Items",
+        "defaultValue": 250,
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "select",
+          "invert": true
+        }
       },
       {
         "type": "boolean",
@@ -165,14 +138,14 @@
         "type": "boolean",
         "label": "MultiSelect",
         "key": "multi",
-        "dependsOn" : {"setting" : "linkType" , "value" : "link", "invert" : true },
+        "dependsOn": { "setting": "linkType", "value": "link", "invert": true },
         "defaultValue": false
       },
       {
         "type": "boolean",
         "label": "Reordering",
         "key": "reorder",
-        "dependsOn" : "multi",
+        "dependsOn": "multi",
         "defaultValue": false
       },
       {
@@ -193,86 +166,30 @@
         }
       },
       {
-        "type" : "boolean",
-        "key"  : "showIcon",
+        "type": "boolean",
+        "key": "showIcon",
         "label": "Add Inline Icon"
       },
       {
-        "type" : "icon",
-        "key"  : "icon",
+        "type": "icon",
+        "key": "icon",
         "label": "Icon",
-        "resetOn" : "showIcon",
-        "dependsOn" : "showIcon"
+        "resetOn": "showIcon",
+        "dependsOn": "showIcon"
       },
       {
-        "type" : "boolean",
-        "key"  : "customButtons",
+        "type": "boolean",
+        "key": "customButtons",
         "label": "Add Buttons"
       },
       {
-        "type" : "buttonConfiguration",
-        "key"  : "buttons",
-        "nested" : true,
-        "dependsOn" : "customButtons"
+        "type": "buttonConfiguration",
+        "key": "buttons",
+        "nested": true,
+        "dependsOn": "customButtons"
       },
       {
-        "section" : true,
-        "name": "Custom Relationship Settings",
-        "dependsOn": { "setting": "linkValueType", "value" : "link", "invert" : true },
-        "settings": [
-          { 
-            "type" : "table",
-            "key": "tableId",
-            "label" : "Table"
-          },
-          {
-            "type" : "filter",
-            "key" :  "filterCustom",
-            "dependsOn" : { "setting" : "linkType", "value": "custom"},
-            "label": "Filter",
-            "resetOn" : "tableId"
-          },
-          {
-            "type" : "number",
-            "key" : "limitCustom",
-            "label" : "Limit",
-            "defaultValue" : 100
-          },
-          { 
-            "type" : "field",
-            "key": "valueColumn",
-            "label" : "Value Column",
-            "resetsOn" : "tableId"
-          },
-          { 
-            "type" : "field",
-            "key": "labelColumn",
-            "label" : "Label Column",
-            "resetsOn" : "tableId"
-          },
-          { 
-            "type" : "multifield",
-            "key": "filterColumns",
-            "label" : "Search Columns",
-            "resetsOn" : "tableId"
-          },
-          { 
-            "type" : "field",
-            "key": "colorColumn",
-            "label" : "Color Column",
-            "resetsOn" : "tableId"
-          },
-          { 
-            "type" : "field",
-            "key": "iconColumn",
-            "label" : "Icon Column",
-            "info" : "Must contain a remix icon class name",
-            "resetsOn" : "tableId"
-          }
-        ]
-      },
-      {
-        "tag" : "style",
+        "tag": "style",
         "type": "select",
         "label": "Layout",
         "key": "span",
