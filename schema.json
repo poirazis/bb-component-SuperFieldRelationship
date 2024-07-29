@@ -45,8 +45,7 @@
       {
         "type": "validation/link",
         "label": "Validation",
-        "key": "validation",
-        "dependsOn": { "setting": "linkValueType", "value": "link" }
+        "key": "validation"
       },
       {
         "type": "event",
@@ -84,6 +83,26 @@
           {
             "label": "Tree Select",
             "value": "treeSelect"
+          },
+          {
+            "label": "Expanded",
+            "value": "expanded"
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "label": "On Item Click",
+        "key": "onItemClick",
+        "dependsOn": { "setting": "controlType", "value": "expanded" },
+        "context": [
+          {
+            "label": "Item ID",
+            "key": "itemId"
+          },
+          {
+            "label": "Item Text",
+            "key": "itemText"
           }
         ]
       },
@@ -99,18 +118,8 @@
       },
       {
         "type": "field",
-        "key": "valueColumn",
-        "label": "Value Column",
-        "resetOn": "tableId",
-        "dependsOn": {
-          "setting": "controlType",
-          "value": "treeSelect"
-        }
-      },
-      {
-        "type": "field",
-        "key": "parentColumn",
-        "label": "Parent Column",
+        "key": "joinColumn",
+        "label": "Join Column",
         "resetOn": "tableId",
         "dependsOn": {
           "setting": "controlType",
