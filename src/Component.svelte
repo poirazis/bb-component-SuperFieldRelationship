@@ -1,51 +1,68 @@
 <script>
-  import { getContext , onDestroy} from "svelte";
-  import CellLink from "../../bb_super_components_shared/src/lib/SuperCell/cells/CellLink.svelte";
+  import { getContext, onDestroy } from "svelte";
+  import CellLink from "../../bb_super_components_shared/src/lib/SuperTableCells/CellLink.svelte";
+  import SuperList from "../../bb_super_components_shared/src/lib/SuperList/SuperList.svelte";
+  import "../../bb_super_components_shared/src/lib/SuperFieldsCommon.css";
 
-  const { styleable, Block, BlockComponent, Provider } = getContext("sdk");
+  const {
+    API,
+    styleable,
+    Block,
+    BlockComponent,
+    Provider,
+    builderStore,
+    fetchData,
+  } = getContext("sdk");
+
   const component = getContext("component");
 
   const formContext = getContext("form");
   const formStepContext = getContext("form-step");
   const labelPos = getContext("field-group");
   const labelWidth = getContext("field-group-label-width");
+  const groupDisabled = getContext("field-group-disabled");
   const formApi = formContext?.formApi;
 
   export let field;
-  export let validation
+  export let filter;
+  export let validation;
 
-  export let controlType
-  
-  export let customButtons
-
-  export let frontButtons = [];
-  export let frontButtonsQuiet;
-  export let frontButtonsGrouping;
-  export let frontButtonsSelected = [0];
+  export let controlType = "select";
+  export let customButtons;
   export let buttons = [];
   export let buttonsQuiet;
-  export let buttonsGrouping;
-  export let buttonsSelected = [0];
 
   export let label;
   export let span = 6;
-  export let placeholder
-  export let defaultValue
-  export let disabled
-  export let readonly
+  export let placeholder;
+  export let defaultValue;
+  export let disabled;
+  export let readonly;
+  export let autocomplete;
 
-  export let icon
+  export let tableId;
+
+  export let pickerColumns = [];
+  export let searchColumns;
+
+  export let multi;
+  export let icon;
+
+  export let onChange;
+  export let onItemClick;
 
   let formField;
   let formStep;
   let fieldState;
   let fieldApi;
-  let fieldSchema
+  let fieldSchema;
   let value;
-  let cellState
-  
+  let fetch;
+  let enrichedDefaultValue;
+  let has_self_ref_relationship;
 
   $: formStep = formStepContext ? $formStepContext || 1 : 1;
+  $: value = fieldState.value;
 
   $: formField = formApi?.registerField(
     field,
@@ -55,7 +72,7 @@
     readonly,
     validation,
     formStep
-  )
+  );
 
   $: unsubscribe = formField?.subscribe((value) => {
     fieldState = value?.fieldState;
@@ -63,27 +80,99 @@
     fieldSchema = value?.fieldSchema;
   });
 
-  $: value = fieldState?.value ? fieldState.value : []
-  $: error = fieldState?.error
+  $: enrichDefaultValue(defaultValue);
+  $: grabEnrichedValue($fetch?.rows);
+  $: identifySelfRelationship(fieldSchema);
 
+  $: if (
+    $builderStore.inBuilder &&
+    $component.selected &&
+    fieldSchema?.tableId &&
+    tableId?.tableId != fieldSchema?.tableId
+  ) {
+    builderStore.actions.updateProp("tableId", {
+      tableId: fieldSchema?.tableId,
+      type: "table",
+    });
+  }
 
   $: $component.styles = {
     ...$component.styles,
     normal: {
       ...$component.styles.normal,
       "flex-direction": labelPos == "left" ? "row" : "column",
-      gap: labelPos == "left" ? "0.85rem" : "0rem",
-      "grid-column": labelPos ? "span " + span : null,
+      "align-items": "stretch",
+      gap: labelPos == "left" ? "0.5rem" : "0rem",
+      "grid-column": labelPos ? "span " + span : "span 1",
       "--label-width":
         labelPos == "left" ? (labelWidth ? labelWidth : "6rem") : "auto",
     },
   };
-  
-  onDestroy(() => {
-    fieldApi?.deregister()
-    unsubscribe?.()
-  })
 
+  const handleChange = (e) => {
+    fieldApi?.setValue(e.detail);
+    onChange?.({ value: fieldState.value });
+  };
+
+  const enrichDefaultValue = (val) => {
+    if (val) {
+      // Is the defaultValue a row id ?
+      if (val.startsWith("ro_ta_")) {
+        fetchRow(fieldSchema?.tableId, val);
+      }
+      // Will attemp to match with primaryDisplay
+      else {
+      }
+    }
+  };
+
+  const grabEnrichedValue = (rows) => {
+    if (rows?.length && !enrichedDefaultValue) {
+      enrichedDefaultValue = [
+        {
+          _id: rows[0]["_id"],
+          primaryDisplay: rows[0][$fetch.definition.primaryDisplay],
+        },
+      ];
+      fieldApi.setValue(enrichedDefaultValue);
+      value = enrichedDefaultValue;
+    }
+  };
+
+  const fetchRow = (tableId, rowId) => {
+    if (tableId && rowId)
+      fetch = fetchData({
+        API,
+        datasource: {
+          tableId,
+          type: "table",
+        },
+        options: {
+          query: {
+            equal: {
+              _id: rowId,
+            },
+          },
+          paginate: false,
+          limit: 1,
+        },
+      });
+  };
+
+  const identifySelfRelationship = async (fs) => {
+    if (!fs || !fs.tableId) return;
+
+    await API.fetchTableDefinition(fs.tableId).then((res) => {
+      let fields = Object.keys(res?.schema);
+      has_self_ref_relationship =
+        fields.find((x) => x.endsWith("_self_")) || undefined;
+    });
+  };
+
+  onDestroy(() => {
+    fieldApi?.deregister();
+    unsubscribe?.();
+  });
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -91,100 +180,68 @@
 <Block>
   <div
     class="superField"
-    use:styleable={$component.styles}  
+    class:multirow={controlType == "expanded"}
+    use:styleable={$component.styles}
   >
-    {#if label || error }
-      <label for="superCell" class="superlabel" class:bound={formContext}>
+    {#if label}
+      <label for="superCell" class="superlabel" class:left={labelPos == "left"}>
         {label}
+        {#if fieldState.error}
+          <div class="error" class:left={labelPos == "left"}>
+            <span>{fieldState.error}</span>
+          </div>
+        {/if}
       </label>
     {/if}
-    
-    <div class="inline-cells">
-      <CellLink
-        bind:cellState
-        cellOptions={{ 
-          placeholder, 
-          readonly,
-          disabled,
-          defaultValue,
-          controlType,
-          role: "formInput", 
-          icon: icon,
+    {#key enrichedDefaultValue}
+      <div class="inline-cells">
+        <CellLink
+          cellOptions={{
+            placeholder,
+            autocomplete,
+            readonly: readonly || fieldState?.readonly,
+            disabled: disabled || groupDisabled || fieldState?.disabled,
+            controlType,
+            error: fieldState?.error,
+            padding: "0.5rem",
+            role: "formInput",
+            icon: icon,
+            joinColumn: has_self_ref_relationship,
+            multi,
+            pickerColumns,
+            searchColumns,
+            relViewMode: "pills",
+            onItemClick,
           }}
-        {value}
-        {fieldSchema}
-        on:change={(e) => fieldApi?.setValue(e.detail)}
-        on:blur={cellState.lostFocus}
-      />
+          {value}
+          {fieldSchema}
+          {filter}
+          on:change={handleChange}
+        />
 
-      {#if customButtons && buttons?.length}
-        <div
-          class="spectrum-ActionGroup spectrum-ActionGroup--compact spectrum-ActionGroup--sizeM"
-        >
-        <Provider data={ { value : fieldState.value }} >
-          {#each buttons as { text, onClick , quiet, disabled, type }}
-            <BlockComponent
-              type = "plugin/bb-component-SuperButton"
-              props = {{
-                quiet,
-                disabled, 
-                size: "M",
-                text,
-                onClick,
-                emphasized : true,
-                selected: type == "cta"
-              }}>
-              </BlockComponent>
-            {/each}
-        </Provider>
+        {#if customButtons && buttons?.length}
+          <div
+            class="spectrum-ActionGroup spectrum-ActionGroup--compact spectrum-ActionGroup--sizeM"
+          >
+            <Provider data={{ value: fieldState.value }}>
+              {#each buttons as { text, onClick, quiet, disabled, type }}
+                <BlockComponent
+                  type="plugin/bb-component-SuperButton"
+                  props={{
+                    quiet: buttonsQuiet || quiet,
+                    disabled,
+                    size: "M",
+                    text,
+                    onClick,
+                    emphasized: true,
+                    selected: type == "cta",
+                  }}
+                ></BlockComponent>
+              {/each}
+            </Provider>
+          </div>
+        {/if}
       </div>
-    {/if}
-    </div>
+    {/key}
   </div>
 </Block>
-
-<style>
-  .superField {
-    display: flex;
-    align-items: stretch;
-    justify-content: stretch;
-    min-width: 0;
-  }
-
-  .superField:focus {
-    outline: none;
-  }
-  .superlabel {
-    display: flex;
-    align-items: flex-start;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    min-width: var(--label-width);
-    max-width: var(--label-width);
-    font-size: 12px;
-    line-height: 1.75rem;
-    font-weight: 400;
-    color: var(--spectrum-global-color-gray-700);
-  }
-
-  .inline-cells {
-    flex: 1;
-    display: flex;
-    justify-items: stretch;
-    height: 2rem;
-  }
-
-  .disabled {
-    color: var(--spectrum-global-color-gray-600);
-    background-color: var(--spectrum-global-color-gray-200);
-  }
-
-  .superlabel.bound {
-    gap: 0.5rem;
-  }
-</style>
-
-
-
-

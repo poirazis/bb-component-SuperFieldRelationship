@@ -6,13 +6,19 @@
     "friendlyName": "Super Field - Relationship",
     "description": "A Relationship Field component for Budibase",
     "icon": "Link",
-    "requiredAncestors" : ["form"],
+    "requiredAncestors": ["form"],
     "settings": [
       {
         "type": "field/link",
         "label": "Field",
         "key": "field",
         "required": true
+      },
+      {
+        "type": "table",
+        "key": "tableId",
+        "label": "Related Table",
+        "hidden": true
       },
       {
         "type": "text",
@@ -47,16 +53,23 @@
         "key": "onChange",
         "context": [
           {
-            "label": "Field Value",
+            "label": "Value",
             "key": "value"
           }
         ]
       },
       {
+        "type": "filter/relationship",
+        "key": "filter",
+        "label": "Filter",
+        "resetOn": "field"
+      },
+      {
         "type": "select",
-        "label": "Type",
+        "label": "Control Type",
         "key": "controlType",
         "defaultValue": "select",
+        "resetOn": "field",
         "placeholder": "Pick an options type",
         "options": [
           {
@@ -64,26 +77,85 @@
             "value": "select"
           },
           {
-            "label": "Checkboxes",
-            "value": "checkbox"
+            "label": "Table Select",
+            "value": "tableSelect"
           },
           {
-            "label": "Switches",
-            "value": "switch"
+            "label": "Tree Select",
+            "value": "treeSelect"
+          },
+          {
+            "label": "Expanded",
+            "value": "expanded"
           }
         ]
       },
       {
-        "type" : "filter/relationship",
-        "key" :  "filter",
-        "label": "Filter",
-        "resetOn" : "field"
+        "type": "event",
+        "label": "On Item Click",
+        "key": "onItemClick",
+        "dependsOn": { "setting": "controlType", "value": "expanded" },
+        "context": [
+          {
+            "label": "Item ID",
+            "key": "itemId"
+          },
+          {
+            "label": "Item Text",
+            "key": "itemText"
+          }
+        ]
       },
       {
-        "type" : "number",
-        "key" : "limit",
-        "label" : "Limit",
-        "defaultValue" : 10
+        "type": "columns",
+        "key": "pickerColumns",
+        "label": "Picker Columns",
+        "resetOn": "tableId",
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "tableSelect"
+        }
+      },
+      {
+        "type": "field",
+        "key": "joinColumn",
+        "label": "Join Column",
+        "resetOn": "tableId",
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "treeSelect"
+        }
+      },
+      {
+        "type": "number",
+        "key": "limitItems",
+        "label": "Limit Items",
+        "defaultValue": 250,
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "select",
+          "invert": true
+        }
+      },
+      {
+        "type": "boolean",
+        "label": "Autocomplete",
+        "key": "autocomplete",
+        "defaultValue": false
+      },
+      {
+        "type": "boolean",
+        "label": "MultiSelect",
+        "key": "multi",
+        "dependsOn": { "setting": "linkType", "value": "link", "invert": true },
+        "defaultValue": false
+      },
+      {
+        "type": "boolean",
+        "label": "Reordering",
+        "key": "reorder",
+        "dependsOn": "multi",
+        "defaultValue": false
       },
       {
         "type": "boolean",
@@ -103,30 +175,30 @@
         }
       },
       {
-        "type" : "boolean",
-        "key"  : "showIcon",
+        "type": "boolean",
+        "key": "showIcon",
         "label": "Add Inline Icon"
       },
       {
-        "type" : "icon",
-        "key"  : "icon",
+        "type": "icon",
+        "key": "icon",
         "label": "Icon",
-        "resetOn" : "showIcon",
-        "dependsOn" : "showIcon"
+        "resetOn": "showIcon",
+        "dependsOn": "showIcon"
       },
       {
-        "type" : "boolean",
-        "key"  : "customButtons",
+        "type": "boolean",
+        "key": "customButtons",
         "label": "Add Buttons"
       },
       {
-        "type" : "buttonConfiguration",
-        "key"  : "buttons",
-        "nested" : true,
-        "dependsOn" : "customButtons"
+        "type": "buttonConfiguration",
+        "key": "buttons",
+        "nested": true,
+        "dependsOn": "customButtons"
       },
       {
-        "tag" : "style",
+        "tag": "style",
         "type": "select",
         "label": "Layout",
         "key": "span",
