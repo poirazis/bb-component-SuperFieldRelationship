@@ -18,7 +18,7 @@
 
   const formContext = getContext("form");
   const formStepContext = getContext("form-step");
-  const labelPos = getContext("field-group");
+  const groupLabelPosition = getContext("field-group");
   const labelWidth = getContext("field-group-label-width");
   const groupDisabled = getContext("field-group-disabled");
   const formApi = formContext?.formApi;
@@ -38,7 +38,8 @@
   export let defaultValue;
   export let disabled;
   export let readonly;
-  export let autocomplete;
+  export let search;
+  export let clearValueIcon;
 
   export let tableId;
 
@@ -51,6 +52,10 @@
   export let onChange;
   export let onItemClick;
 
+  export let relViewMode = "text";
+  export let role = "formInput";
+  export let labelPosition;
+
   let formField;
   let formStep;
   let fieldState;
@@ -62,6 +67,7 @@
   let has_self_ref_relationship;
 
   $: formStep = formStepContext ? $formStepContext || 1 : 1;
+  $: labelPos = labelPosition ? labelPosition : groupLabelPosition || "left";
   $: value = fieldState.value;
 
   $: formField = formApi?.registerField(
@@ -198,19 +204,20 @@
         <CellLink
           cellOptions={{
             placeholder,
-            autocomplete,
+            search,
             readonly: readonly || fieldState?.readonly,
             disabled: disabled || groupDisabled || fieldState?.disabled,
             controlType,
             error: fieldState?.error,
             padding: "0.5rem",
-            role: "formInput",
+            role,
             icon: icon,
+            clearValueIcon,
             joinColumn: has_self_ref_relationship,
             multi,
             pickerColumns,
             searchColumns,
-            relViewMode: "pills",
+            relViewMode,
             onItemClick,
           }}
           {value}
