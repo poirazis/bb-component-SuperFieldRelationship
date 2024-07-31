@@ -91,22 +91,6 @@
         ]
       },
       {
-        "type": "event",
-        "label": "On Item Click",
-        "key": "onItemClick",
-        "dependsOn": { "setting": "controlType", "value": "expanded" },
-        "context": [
-          {
-            "label": "Item ID",
-            "key": "itemId"
-          },
-          {
-            "label": "Item Text",
-            "key": "itemText"
-          }
-        ]
-      },
-      {
         "type": "columns",
         "key": "pickerColumns",
         "label": "Picker Columns",
@@ -139,26 +123,6 @@
       },
       {
         "type": "boolean",
-        "label": "Autocomplete",
-        "key": "autocomplete",
-        "defaultValue": false
-      },
-      {
-        "type": "boolean",
-        "label": "MultiSelect",
-        "key": "multi",
-        "dependsOn": { "setting": "linkType", "value": "link", "invert": true },
-        "defaultValue": false
-      },
-      {
-        "type": "boolean",
-        "label": "Reordering",
-        "key": "reorder",
-        "dependsOn": "multi",
-        "defaultValue": false
-      },
-      {
-        "type": "boolean",
         "label": "Disabled",
         "key": "disabled",
         "defaultValue": false
@@ -176,8 +140,37 @@
       },
       {
         "type": "boolean",
+        "label": "Search",
+        "key": "search",
+        "defaultValue": true
+      },
+      {
+        "type": "boolean",
+        "label": "Clear Value Icon",
+        "key": "clearValueIcon",
+        "defaultValue": false,
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "expanded",
+          "invert": true
+        }
+      },
+      {
+        "type": "boolean",
+        "label": "Reordering",
+        "key": "reorder",
+        "dependsOn": { "setting": "controlType", "value": "expanded" },
+        "defaultValue": false
+      },
+      {
+        "type": "boolean",
         "key": "showIcon",
-        "label": "Add Inline Icon"
+        "label": "Add Inline Icon",
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "expanded",
+          "invert": true
+        }
       },
       {
         "type": "icon",
@@ -189,13 +182,90 @@
       {
         "type": "boolean",
         "key": "customButtons",
-        "label": "Add Buttons"
+        "label": "Add Buttons",
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "expanded",
+          "invert": true
+        }
       },
       {
         "type": "buttonConfiguration",
         "key": "buttons",
         "nested": true,
         "dependsOn": "customButtons"
+      },
+      {
+        "type": "buttonConfiguration",
+        "key": "itemButtons",
+        "label": "Item Buttons",
+        "nested": true,
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "expanded"
+        }
+      },
+      {
+        "type": "event",
+        "label": "On Item Click",
+        "key": "onItemClick",
+        "dependsOn": { "setting": "controlType", "value": "expanded" },
+        "context": [
+          {
+            "label": "Item ID",
+            "key": "itemId"
+          },
+          {
+            "label": "Item Text",
+            "key": "itemText"
+          }
+        ]
+      },
+      {
+        "tag": "style",
+        "type": "select",
+        "label": "Field Mode",
+        "key": "role",
+        "defaultValue": "formInput",
+        "options": [
+          {
+            "label": "Form Input",
+            "value": "formInput"
+          },
+          {
+            "label": "Inline Input",
+            "value": "inlineInput"
+          }
+        ]
+      },
+      {
+        "tag": "style",
+        "type": "select",
+        "label": "Label Position",
+        "key": "labelPosition",
+        "defaultValue": false,
+        "showInBar": true,
+        "barStyle": "buttons",
+        "options": [
+          {
+            "label": "Auto",
+            "value": false,
+            "barIcon": "Group",
+            "barTitle": "Field Group"
+          },
+          {
+            "label": "Above",
+            "value": "above",
+            "barIcon": "MarginTop",
+            "barTitle": "Above"
+          },
+          {
+            "label": "Left",
+            "value": "left",
+            "barIcon": "MarginLeft",
+            "barTitle": "Left"
+          }
+        ]
       },
       {
         "tag": "style",
@@ -225,6 +295,17 @@
             "barTitle": "3 columns"
           }
         ]
+      },
+      {
+        "tag": "style",
+        "type": "select",
+        "key": "relViewMode",
+        "label": "Relationships",
+        "options": [
+          { "label": "Text", "value": "text" },
+          { "label": "Pills", "value": "pills" }
+        ],
+        "defaultValue": "text"
       }
     ]
   }
