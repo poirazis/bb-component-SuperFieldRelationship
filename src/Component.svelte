@@ -1,24 +1,21 @@
 <script>
   import { getContext, onDestroy } from "svelte";
   import CellLink from "../../bb_super_components_shared/src/lib/SuperTableCells/CellLink.svelte";
-  import SuperList from "../../bb_super_components_shared/src/lib/SuperList/SuperList.svelte";
+  import SuperButton from "../../bb_super_components_shared/src/lib/SuperButton/SuperButton.svelte";
+  import SuperFieldLabel from "../../bb_super_components_shared/src/lib/SuperFieldLabel/SuperFieldLabel.svelte";
   import "../../bb_super_components_shared/src/lib/SuperFieldsCommon.css";
+  import "../../bb_super_components_shared/src/lib/SuperTableCells/CellCommon.css";
 
-  const {
-    API,
-    styleable,
-    Block,
-    BlockComponent,
-    Provider,
-    builderStore,
-    fetchData,
-  } = getContext("sdk");
+  const { API, styleable, builderStore, fetchData, enrichButtonActions } =
+    getContext("sdk");
 
   const component = getContext("component");
+  const allContext = getContext("context");
 
   const formContext = getContext("form");
   const formStepContext = getContext("form-step");
   const groupLabelPosition = getContext("field-group");
+  const groupColumns = getContext("field-group-columns");
   const labelWidth = getContext("field-group-label-width");
   const groupDisabled = getContext("field-group-disabled");
   const formApi = formContext?.formApi;
@@ -28,33 +25,33 @@
   export let validation;
 
   export let controlType = "select";
-  export let customButtons;
+  export let wide;
   export let buttons = [];
-  export let buttonsQuiet;
 
   export let label;
   export let span = 6;
-  export let placeholder;
+  export let placeholder = "Choose an Option";
   export let defaultValue;
   export let disabled;
   export let readonly;
   export let search;
-  export let clearValueIcon;
+  export let helpText;
 
   export let tableId;
 
   export let pickerColumns = [];
   export let searchColumns;
 
-  export let multi;
   export let icon;
 
   export let onChange;
-  export let onItemClick;
 
   export let relViewMode = "text";
   export let role = "formInput";
-  export let labelPosition;
+  export let labelPosition = "fieldGroup";
+  export let showDirty = false;
+
+  export let ownId;
 
   let formField;
   let formStep;
@@ -66,8 +63,13 @@
   let enrichedDefaultValue;
   let has_self_ref_relationship;
 
+  let showHelp;
+
   $: formStep = formStepContext ? $formStepContext || 1 : 1;
-  $: labelPos = labelPosition ? labelPosition : groupLabelPosition || "left";
+  $: labelPos =
+    groupLabelPosition && labelPosition == "fieldGroup"
+      ? groupLabelPosition
+      : labelPosition;
   $: value = fieldState.value;
 
   $: formField = formApi?.registerField(
@@ -79,7 +81,7 @@
     validation,
     formStep
   );
-
+  $: tableId = formContext.dataSource.tableId;
   $: unsubscribe = formField?.subscribe((value) => {
     fieldState = value?.fieldState;
     fieldApi = value?.fieldApi;
@@ -89,29 +91,18 @@
   $: enrichDefaultValue(defaultValue);
   $: grabEnrichedValue($fetch?.rows);
   $: identifySelfRelationship(fieldSchema);
+  $: is_self_relationship = field?.includes("_self_") ? field : undefined;
+  $: if (is_self_relationship) tableId = formContext.dataSource.tableId.tableId;
 
-  $: if (
-    $builderStore.inBuilder &&
-    $component.selected &&
-    fieldSchema?.tableId &&
-    tableId?.tableId != fieldSchema?.tableId
-  ) {
-    builderStore.actions.updateProp("tableId", {
-      tableId: fieldSchema?.tableId,
-      type: "table",
-    });
+  $: if ($builderStore.inBuilder && $component.selected) {
+    builderStore.actions.updateProp("isSelfReferencing", is_self_relationship);
   }
 
   $: $component.styles = {
     ...$component.styles,
     normal: {
       ...$component.styles.normal,
-      "flex-direction": labelPos == "left" ? "row" : "column",
-      "align-items": "stretch",
-      gap: labelPos == "left" ? "0.5rem" : "0rem",
-      "grid-column": labelPos ? "span " + span : "span 1",
-      "--label-width":
-        labelPos == "left" ? (labelWidth ? labelWidth : "6rem") : "auto",
+      "grid-column": span < 7 ? "span " + span : "span " + groupColumns * 6,
     },
   };
 
@@ -122,13 +113,7 @@
 
   const enrichDefaultValue = (val) => {
     if (val) {
-      // Is the defaultValue a row id ?
-      if (val.startsWith("ro_ta_")) {
-        fetchRow(fieldSchema?.tableId, val);
-      }
-      // Will attemp to match with primaryDisplay
-      else {
-      }
+      fetchRow(fieldSchema?.tableId, val);
     }
   };
 
@@ -170,8 +155,7 @@
 
     await API.fetchTableDefinition(fs.tableId).then((res) => {
       let fields = Object.keys(res?.schema);
-      has_self_ref_relationship =
-        fields.find((x) => x.endsWith("_self_")) || undefined;
+      has_self_ref_relationship = fields.find((x) => x.endsWith("_self_"));
     });
   };
 
@@ -183,22 +167,21 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-<Block>
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<div use:styleable={$component.styles}>
   <div
     class="superField"
-    class:multirow={controlType == "expanded"}
-    use:styleable={$component.styles}
+    class:left-label={labelPos == "left"}
+    class:multirow={controlType != "select"}
   >
-    {#if label}
-      <label for="superCell" class="superlabel" class:left={labelPos == "left"}>
-        {label}
-        {#if fieldState.error}
-          <div class="error" class:left={labelPos == "left"}>
-            <span>{fieldState.error}</span>
-          </div>
-        {/if}
-      </label>
-    {/if}
+    <SuperFieldLabel
+      {labelPos}
+      {labelWidth}
+      {label}
+      {helpText}
+      error={fieldState?.error}
+    />
+
     {#key enrichedDefaultValue}
       <div class="inline-cells">
         <CellLink
@@ -209,46 +192,45 @@
             disabled: disabled || groupDisabled || fieldState?.disabled,
             controlType,
             error: fieldState?.error,
-            padding: "0.5rem",
             role,
-            icon: icon,
-            clearValueIcon,
-            joinColumn: has_self_ref_relationship,
-            multi,
-            pickerColumns,
-            searchColumns,
+            icon,
+            showDirty,
+            joinColumn: has_self_ref_relationship ?? is_self_relationship,
             relViewMode,
-            onItemClick,
+            wide,
           }}
           {value}
-          {fieldSchema}
+          {ownId}
+          fieldSchema={{
+            ...fieldSchema,
+            tableId: is_self_relationship
+              ? formContext.dataSource.tableId
+              : fieldSchema.tableId,
+            relationshipType: is_self_relationship
+              ? "self"
+              : fieldSchema.relationshipType,
+            recursiveTable: is_self_relationship || has_self_ref_relationship,
+          }}
           {filter}
           on:change={handleChange}
         />
 
-        {#if customButtons && buttons?.length}
-          <div
-            class="spectrum-ActionGroup spectrum-ActionGroup--compact spectrum-ActionGroup--sizeM"
-          >
-            <Provider data={{ value: fieldState.value }}>
-              {#each buttons as { text, onClick, quiet, disabled, type }}
-                <BlockComponent
-                  type="plugin/bb-component-SuperButton"
-                  props={{
-                    quiet: buttonsQuiet || quiet,
-                    disabled,
-                    size: "M",
-                    text,
-                    onClick,
-                    emphasized: true,
-                    selected: type == "cta",
-                  }}
-                ></BlockComponent>
-              {/each}
-            </Provider>
+        {#if buttons?.length && !fieldState.disabled}
+          <div class="inline-buttons">
+            {#each buttons as { icon, text, onClick, quiet, disabled, type, size }}
+              <SuperButton
+                {icon}
+                {quiet}
+                {disabled}
+                {size}
+                {type}
+                {text}
+                on:click={enrichButtonActions(onClick, $allContext)({ value })}
+              />
+            {/each}
           </div>
         {/if}
       </div>
     {/key}
   </div>
-</Block>
+</div>
