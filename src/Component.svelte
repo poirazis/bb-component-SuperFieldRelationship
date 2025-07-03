@@ -1,10 +1,10 @@
 <script>
   import { getContext, onDestroy } from "svelte";
-  import CellLink from "../../bb_super_components_shared/src/lib/SuperTableCells/CellLink.svelte";
-  import SuperButton from "../../bb_super_components_shared/src/lib/SuperButton/SuperButton.svelte";
-  import SuperFieldLabel from "../../bb_super_components_shared/src/lib/SuperFieldLabel/SuperFieldLabel.svelte";
-  import "../../bb_super_components_shared/src/lib/SuperFieldsCommon.css";
-  import "../../bb_super_components_shared/src/lib/SuperTableCells/CellCommon.css";
+  import {
+    CellLink,
+    SuperButton,
+    SuperField,
+  } from "@poirazis/supercomponents-shared";
 
   const { API, styleable, builderStore, fetchData, enrichButtonActions } =
     getContext("sdk");
@@ -39,9 +39,6 @@
 
   export let tableId;
 
-  export let pickerColumns = [];
-  export let searchColumns;
-
   export let icon;
 
   export let onChange;
@@ -63,14 +60,14 @@
   let enrichedDefaultValue;
   let has_self_ref_relationship;
 
-  let showHelp;
-
+  $: multirow = controlType != "select";
   $: formStep = formStepContext ? $formStepContext || 1 : 1;
   $: labelPos =
     groupLabelPosition && labelPosition == "fieldGroup"
       ? groupLabelPosition
       : labelPosition;
-  $: value = fieldState.value;
+  $: value = fieldState?.value;
+  $: error = fieldState?.error;
 
   $: formField = formApi?.registerField(
     field,
@@ -81,18 +78,21 @@
     validation,
     formStep
   );
-  $: tableId = formContext.dataSource.tableId;
+  $: tableId = formContext?.dataSource?.tableId;
   $: unsubscribe = formField?.subscribe((value) => {
     fieldState = value?.fieldState;
     fieldApi = value?.fieldApi;
     fieldSchema = value?.fieldSchema;
+    value = fieldState?.value;
   });
 
   $: enrichDefaultValue(defaultValue);
   $: grabEnrichedValue($fetch?.rows);
   $: identifySelfRelationship(fieldSchema);
-  $: is_self_relationship = field?.includes("_self_") ? field : undefined;
-  $: if (is_self_relationship) tableId = formContext.dataSource.tableId.tableId;
+  $: is_self_relationship = field?.startsWith("fk_self_") ? field : undefined;
+  $: if (is_self_relationship) {
+    tableId = formContext?.dataSource?.tableId;
+  }
 
   $: if ($builderStore.inBuilder && $component.selected) {
     builderStore.actions.updateProp("isSelfReferencing", is_self_relationship);
@@ -107,8 +107,16 @@
   };
 
   const handleChange = (e) => {
-    fieldApi?.setValue(e.detail);
-    onChange?.({ value: fieldState.value });
+    if (is_self_relationship) {
+      let val = e.detail;
+      if (val && val.length) {
+        let id = val[0]._id;
+        fieldApi?.setValue(id);
+      }
+    } else {
+      fieldApi?.setValue(e.detail);
+      onChange?.({ value: fieldState.value });
+    }
   };
 
   const enrichDefaultValue = (val) => {
@@ -141,7 +149,7 @@
         options: {
           query: {
             equal: {
-              _id: rowId,
+              id: rowId,
             },
           },
           paginate: false,
@@ -151,11 +159,11 @@
   };
 
   const identifySelfRelationship = async (fs) => {
-    if (!fs || !fs.tableId) return;
+    if (!fs || !fs?.tableId) return;
 
     await API.fetchTableDefinition(fs.tableId).then((res) => {
       let fields = Object.keys(res?.schema);
-      has_self_ref_relationship = fields.find((x) => x.endsWith("_self_"));
+      has_self_ref_relationship = fields.find((x) => x.startsWith("fk_self_"));
     });
   };
 
@@ -169,68 +177,62 @@
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <div use:styleable={$component.styles}>
-  <div
-    class="superField"
-    class:left-label={labelPos == "left"}
-    class:multirow={controlType != "select"}
+  <SuperField
+    {labelPos}
+    {labelWidth}
+    {field}
+    {label}
+    {error}
+    {helpText}
+    {multirow}
   >
-    <SuperFieldLabel
-      {labelPos}
-      {labelWidth}
-      {label}
-      {helpText}
-      error={fieldState?.error}
-    />
-
     {#key enrichedDefaultValue}
-      <div class="inline-cells">
-        <CellLink
-          cellOptions={{
-            placeholder,
-            search,
-            readonly: readonly || fieldState?.readonly,
-            disabled: disabled || groupDisabled || fieldState?.disabled,
-            controlType,
-            error: fieldState?.error,
-            role,
-            icon,
-            showDirty,
-            joinColumn: has_self_ref_relationship ?? is_self_relationship,
-            relViewMode,
-            wide,
-          }}
-          {value}
-          {ownId}
-          fieldSchema={{
-            ...fieldSchema,
-            tableId: is_self_relationship
-              ? formContext.dataSource.tableId
-              : fieldSchema.tableId,
-            relationshipType: is_self_relationship
-              ? "self"
-              : fieldSchema.relationshipType,
-            recursiveTable: is_self_relationship || has_self_ref_relationship,
-          }}
-          {filter}
-          on:change={handleChange}
-        />
+      <CellLink
+        cellOptions={{
+          placeholder,
+          search,
+          readonly: readonly || fieldState?.readonly,
+          disabled: disabled || groupDisabled || fieldState?.disabled,
+          controlType,
+          error: fieldState?.error,
+          role,
+          icon,
+          showDirty,
+          joinColumn: has_self_ref_relationship ?? is_self_relationship,
+          relViewMode,
+          wide,
+        }}
+        {value}
+        {ownId}
+        fieldSchema={{
+          ...fieldSchema,
+          tableId: is_self_relationship
+            ? formContext?.dataSource?.tableId
+            : fieldSchema?.tableId,
+          relationshipType: is_self_relationship
+            ? "self"
+            : fieldSchema?.relationshipType,
+          recursiveTable: is_self_relationship || has_self_ref_relationship,
+        }}
+        {filter}
+        on:change={handleChange}
+      />
 
-        {#if buttons?.length && !fieldState.disabled}
-          <div class="inline-buttons">
-            {#each buttons as { icon, text, onClick, quiet, disabled, type, size }}
-              <SuperButton
-                {icon}
-                {quiet}
-                {disabled}
-                {size}
-                {type}
-                {text}
-                on:click={enrichButtonActions(onClick, $allContext)({ value })}
-              />
-            {/each}
-          </div>
-        {/if}
-      </div>
+      {#if buttons?.length && !fieldState.disabled}
+        <div class="inline-buttons">
+          {#each buttons as { icon, text, onClick, quiet, disabled, type, size }}
+            <SuperButton
+              {icon}
+              {quiet}
+              {disabled}
+              {size}
+              {type}
+              {text}
+              on:click={enrichButtonActions(onClick, $allContext)({ value })}
+            />
+          {/each}
+        </div>
+      {/if}
     {/key}
-  </div>
+  </SuperField>
 </div>

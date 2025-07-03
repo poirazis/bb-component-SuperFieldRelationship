@@ -6,6 +6,7 @@
     "friendlyName": "Super Field - Relationship",
     "description": "A Relationship Field component for Budibase",
     "icon": "Link",
+
     "settings": [
       {
         "type": "field/link",
