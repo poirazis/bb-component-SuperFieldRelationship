@@ -6,7 +6,7 @@
     "friendlyName": "Super Field - Relationship",
     "description": "A Relationship Field component for Budibase",
     "icon": "Link",
-    "requiredAncestors": ["form"],
+
     "settings": [
       {
         "type": "field/link",
@@ -21,9 +21,24 @@
         "hidden": true
       },
       {
+        "type": "boolean",
+        "key": "isSelfReferencing",
+        "label": "Self Referencing",
+        "hidden": true
+      },
+      {
         "type": "text",
         "label": "Label",
-        "key": "label"
+        "key": "label",
+        "resetOn": "field",
+        "placeholder": "Field Name"
+      },
+      {
+        "type": "text",
+        "label": "Own ID",
+        "key": "ownId",
+        "resetOn": "isSelfReferencing",
+        "dependsOn": "isSelfReferencing"
       },
       {
         "type": "text",
@@ -79,14 +94,6 @@
           {
             "label": "Table Select",
             "value": "tableSelect"
-          },
-          {
-            "label": "Tree Select",
-            "value": "treeSelect"
-          },
-          {
-            "label": "Expanded",
-            "value": "expanded"
           }
         ]
       },
@@ -123,6 +130,13 @@
       },
       {
         "type": "boolean",
+        "label": "Wide",
+        "key": "wide",
+        "defaultValue": false,
+        "dependsOn": { "setting": "controlType", "value": "select" }
+      },
+      {
+        "type": "boolean",
         "label": "Disabled",
         "key": "disabled",
         "defaultValue": false
@@ -140,86 +154,69 @@
       },
       {
         "type": "boolean",
-        "label": "Search",
-        "key": "search",
-        "defaultValue": true
-      },
-      {
-        "type": "boolean",
-        "label": "Clear Value Icon",
-        "key": "clearValueIcon",
-        "defaultValue": false,
-        "dependsOn": {
-          "setting": "controlType",
-          "value": "expanded",
-          "invert": true
-        }
+        "key": "invisible",
+        "label": "Invisible",
+        "defaultValue": false
       },
       {
         "type": "boolean",
         "label": "Reordering",
-        "key": "reorder",
+        "key": "reordering",
+        "dependsOn": { "setting": "controlType", "value": "expanded" },
+        "defaultValue": true
+      },
+      {
+        "type": "boolean",
+        "label": "Numbering",
+        "key": "numbering",
         "dependsOn": { "setting": "controlType", "value": "expanded" },
         "defaultValue": false
       },
       {
         "type": "boolean",
-        "key": "showIcon",
-        "label": "Add Inline Icon",
-        "dependsOn": {
-          "setting": "controlType",
-          "value": "expanded",
-          "invert": true
-        }
+        "label": "Create New",
+        "key": "createNew",
+        "dependsOn": { "setting": "controlType", "value": "expanded" },
+        "resetOn": "controlType",
+        "defaultValue": false
       },
       {
         "type": "icon",
         "key": "icon",
-        "label": "Icon",
-        "resetOn": "showIcon",
-        "dependsOn": "showIcon"
-      },
-      {
-        "type": "boolean",
-        "key": "customButtons",
-        "label": "Add Buttons",
-        "dependsOn": {
-          "setting": "controlType",
-          "value": "expanded",
-          "invert": true
-        }
+        "label": "Inline Icon"
       },
       {
         "type": "buttonConfiguration",
         "key": "buttons",
         "nested": true,
-        "dependsOn": "customButtons"
+        "wide": true
       },
       {
         "type": "buttonConfiguration",
         "key": "itemButtons",
-        "label": "Item Buttons",
+        "label": "Row Actions",
         "nested": true,
+        "wide": true,
         "dependsOn": {
           "setting": "controlType",
           "value": "expanded"
-        }
+        },
+        "context": [
+          {
+            "label": "Row ID",
+            "key": "id"
+          },
+          {
+            "label": "Row Text",
+            "key": "text"
+          }
+        ]
       },
       {
         "type": "event",
-        "label": "On Item Click",
-        "key": "onItemClick",
-        "dependsOn": { "setting": "controlType", "value": "expanded" },
-        "context": [
-          {
-            "label": "Item ID",
-            "key": "itemId"
-          },
-          {
-            "label": "Item Text",
-            "key": "itemText"
-          }
-        ]
+        "label": "On Create New",
+        "key": "onCreateNew",
+        "dependsOn": "createNew"
       },
       {
         "tag": "style",
@@ -243,13 +240,19 @@
         "type": "select",
         "label": "Label Position",
         "key": "labelPosition",
-        "defaultValue": false,
         "showInBar": true,
         "barStyle": "buttons",
+        "defaultValue": "fieldGroup",
         "options": [
           {
-            "label": "Auto",
+            "label": "Disabled",
             "value": false,
+            "barIcon": "Cancel",
+            "barTitle": "Disabled"
+          },
+          {
+            "label": "Auto",
+            "value": "fieldGroup",
             "barIcon": "Group",
             "barTitle": "Field Group"
           },
@@ -269,43 +272,29 @@
       },
       {
         "tag": "style",
-        "type": "select",
-        "label": "Layout",
+        "type": "number",
+        "label": "Size",
         "key": "span",
         "defaultValue": 6,
-        "showInBar": true,
-        "barStyle": "buttons",
-        "options": [
-          {
-            "label": "1 column",
-            "value": 6,
-            "barIcon": "Stop",
-            "barTitle": "1 column"
-          },
-          {
-            "label": "2 columns",
-            "value": 3,
-            "barIcon": "ColumnTwoA",
-            "barTitle": "2 columns"
-          },
-          {
-            "label": "3 columns",
-            "value": 2,
-            "barIcon": "ViewColumn",
-            "barTitle": "3 columns"
-          }
-        ]
+        "min": 2
       },
       {
         "tag": "style",
         "type": "select",
         "key": "relViewMode",
-        "label": "Relationships",
+        "label": "Mode",
         "options": [
           { "label": "Text", "value": "text" },
           { "label": "Pills", "value": "pills" }
         ],
         "defaultValue": "text"
+      },
+      {
+        "tag": "style",
+        "type": "boolean",
+        "key": "showDirty",
+        "label": "Show Dirty",
+        "defaultValue": false
       }
     ]
   }
