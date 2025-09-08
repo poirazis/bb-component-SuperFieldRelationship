@@ -154,6 +154,12 @@
       },
       {
         "type": "boolean",
+        "key": "invisible",
+        "label": "Invisible",
+        "defaultValue": false
+      },
+      {
+        "type": "boolean",
         "label": "Reordering",
         "key": "reordering",
         "dependsOn": { "setting": "controlType", "value": "expanded" },
@@ -266,38 +272,22 @@
       },
       {
         "tag": "style",
-        "type": "select",
-        "label": "Layout",
+        "type": "number",
+        "label": "Size",
         "key": "span",
         "defaultValue": 6,
-        "showInBar": true,
-        "barStyle": "buttons",
+        "min": 2
+      },
+      {
+        "tag": "style",
+        "type": "select",
+        "key": "relViewMode",
+        "label": "Mode",
         "options": [
-          {
-            "label": "3 columns",
-            "value": 2,
-            "barIcon": "ViewColumn",
-            "barTitle": "3 columns"
-          },
-          {
-            "label": "2 columns",
-            "value": 3,
-            "barIcon": "ColumnTwoA",
-            "barTitle": "2 columns"
-          },
-          {
-            "label": "1 column",
-            "value": 6,
-            "barIcon": "Stop",
-            "barTitle": "1 column"
-          },
-          {
-            "label": "Full Width",
-            "value": 12,
-            "barIcon": "Maximize",
-            "barTitle": "Full Width"
-          }
-        ]
+          { "label": "Text", "value": "text" },
+          { "label": "Pills", "value": "pills" }
+        ],
+        "defaultValue": "text"
       },
       {
         "tag": "style",
@@ -305,17 +295,6 @@
         "key": "showDirty",
         "label": "Show Dirty",
         "defaultValue": false
-      },
-      {
-        "tag": "style",
-        "type": "select",
-        "key": "relViewMode",
-        "label": "Relationships",
-        "options": [
-          { "label": "Text", "value": "text" },
-          { "label": "Pills", "value": "pills" }
-        ],
-        "defaultValue": "text"
       }
     ]
   }
