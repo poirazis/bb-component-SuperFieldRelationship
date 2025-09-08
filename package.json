@@ -1,6 +1,6 @@
 {
   "name": "bb-component-SuperFieldRelationship",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A Relationship Input Field for Budibase",
   "author": "Michael Poirazi",
   "license": "MIT",
