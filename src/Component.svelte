@@ -158,8 +158,6 @@
     fieldApi?.deregister();
     unsubscribe?.();
   });
-
-  $: console.log(value);
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
