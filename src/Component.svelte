@@ -103,19 +103,24 @@
       enriched = true;
       return;
     } else if (fieldSchema.tableId) {
-      API.fetchRow(fieldSchema.tableId, id).then((row) => {
-        value = [
-          {
-            _id: row.id ?? row._id,
-            primaryDisplay: fieldSchema.primaryDisplay
-              ? row[fieldSchema.primaryDisplay]
-              : row.name || row.id,
-          },
-        ];
+      API.fetchRow(fieldSchema.tableId, id, true)
+        .then((row) => {
+          value = [
+            {
+              _id: row.id ?? row._id,
+              primaryDisplay: fieldSchema.primaryDisplay
+                ? row[fieldSchema.primaryDisplay]
+                : row.name || row.id,
+            },
+          ];
 
-        fieldApi?.setValue(value);
-        enriched = true;
-      });
+          fieldApi?.setValue(value);
+          enriched = true;
+        })
+        .catch(() => {
+          value = null;
+          enriched = true;
+        });
     }
   };
 

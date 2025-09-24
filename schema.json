@@ -27,6 +27,11 @@
         "hidden": true
       },
       {
+        "type": "boolean",
+        "key": "isUserSelect",
+        "label": "User Select"
+      },
+      {
         "type": "text",
         "label": "Label",
         "key": "label",
