@@ -103,6 +103,10 @@
       enriched = true;
       return;
     } else if (fieldSchema.tableId) {
+      console.log("Enriching relationship field:", field, id);
+
+      value = null;
+
       API.fetchRow(fieldSchema.tableId, id, true)
         .then((row) => {
           value = [
@@ -134,6 +138,7 @@
           : $component.styles.normal.display,
       opacity: invisible && $builderStore.inBuilder ? 0.6 : 1,
       "grid-column": groupColumns ? `span ${span}` : "span 1",
+      overflow: "hidden",
     },
   };
 
