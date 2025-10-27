@@ -103,8 +103,6 @@
       enriched = true;
       return;
     } else if (fieldSchema.tableId) {
-      console.log("Enriching relationship field:", field, id);
-
       value = null;
 
       API.fetchRow(fieldSchema.tableId, id, true)
@@ -224,7 +222,7 @@
             {size}
             {type}
             {text}
-            on:click={enrichButtonActions(onClick, $allContext)({ value })}
+            onClick={enrichButtonActions(onClick, $allContext)({ value })}
           />
         {/each}
       </div>
