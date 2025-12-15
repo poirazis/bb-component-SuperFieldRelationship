@@ -119,7 +119,7 @@
           fieldApi?.setValue(value);
           enriched = true;
         })
-        .catch(() => {
+        .catch((ex) => {
           value = null;
           enriched = true;
         });
