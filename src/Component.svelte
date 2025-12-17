@@ -6,8 +6,13 @@
     SuperField,
   } from "@poirazis/supercomponents-shared";
 
-  const { API, styleable, builderStore, enrichButtonActions } =
-    getContext("sdk");
+  const {
+    API,
+    styleable,
+    builderStore,
+    enrichButtonActions,
+    processStringSync,
+  } = getContext("sdk");
 
   const component = getContext("component");
   const allContext = getContext("context");
@@ -64,7 +69,7 @@
 
   $: formStep = formStepContext ? $formStepContext || 1 : 1;
   $: labelPos =
-    groupLabelPosition && labelPosition == "fieldGroup"
+    groupLabelPosition !== undefined && labelPosition == "fieldGroup"
       ? groupLabelPosition
       : labelPosition;
 
@@ -146,10 +151,10 @@
       let id = val?.length ? val[0]._id : null;
       fieldApi?.setValue(id);
       // value = val;
-      onChange?.({ value: fieldState.value });
+      onChange?.();
     } else {
       fieldApi?.setValue(e.detail);
-      onChange?.({ value: fieldState.value });
+      onChange?.();
     }
   };
 
@@ -190,7 +195,7 @@
         controlType,
         error: fieldState?.error,
         role,
-        icon,
+        icon: icon ? "ph ph-" + icon : undefined,
         showDirty,
         joinColumn: has_self_ref_relationship ?? is_self_relationship,
         relViewMode,
@@ -212,17 +217,20 @@
       on:change={handleChange}
     />
 
-    {#if buttons?.length && !fieldState.disabled}
+    {#if buttons?.length}
       <div class="inline-buttons">
-        {#each buttons as { icon, text, onClick, quiet, disabled, type, size }}
+        {#each buttons as { icon, onClick, ...rest }}
           <SuperButton
-            {icon}
-            {quiet}
-            {disabled}
-            {size}
-            {type}
-            {text}
-            onClick={enrichButtonActions(onClick, $allContext)({ value })}
+            {...rest}
+            icon={"ph ph-" + icon}
+            disabled={processStringSync(
+              rest.disabledTemplate ?? "",
+              $allContext
+            ) === true ||
+              disabled ||
+              groupDisabled ||
+              fieldState?.disabled}
+            onClick={enrichButtonActions(onClick, $allContext)}
           />
         {/each}
       </div>
