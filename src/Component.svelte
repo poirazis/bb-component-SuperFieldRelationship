@@ -86,9 +86,6 @@
     formStep
   );
 
-  $: tableId = formContext?.dataSource?.tableId;
-  $: is_self_relationship = field?.startsWith("fk_self_") ? field : undefined;
-
   $: if ($builderStore.inBuilder && $component.selected) {
     builderStore.actions.updateProp("isSelfReferencing", is_self_relationship);
   }
@@ -98,11 +95,14 @@
     fieldSchema = value?.fieldSchema;
   });
 
+  $: tableId = formContext?.dataSource?.tableId;
+  $: is_self_relationship = field?.startsWith("fk_self_") ? field : undefined;
+  $: isUser = fieldSchema?.subtype == "user";
   $: identifySelfRelationship(fieldSchema);
   $: enrichRow(value);
 
   const enrichRow = (id) => {
-    if (!id || Array.isArray(id) || enriched) return;
+    if (!id || Array.isArray(id) || enriched || isUser) return;
 
     if (is_self_relationship) {
       enriched = true;
@@ -202,7 +202,7 @@
         wide,
       }}
       {value}
-      {ownId}
+      ownId={is_self_relationship ? ownId : null}
       fieldSchema={{
         ...fieldSchema,
         tableId: is_self_relationship

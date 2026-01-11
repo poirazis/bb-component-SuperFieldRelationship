@@ -1,12 +1,13 @@
 {
   "type": "component",
-  "metadata": {},
+  "metadata": {
+    "svelteMajor": 5
+  },
   "schema": {
     "name": "bb-component-SuperFieldRelationship",
     "friendlyName": "Super Field - Relationship",
     "description": "A Relationship Field component for Budibase",
     "icon": "Link",
-
     "settings": [
       {
         "type": "field/link",
@@ -89,7 +90,10 @@
         "label": "Wide",
         "key": "wide",
         "defaultValue": false,
-        "dependsOn": { "setting": "controlType", "value": "select" }
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "select"
+        }
       },
       {
         "type": "boolean",
@@ -179,8 +183,14 @@
         "key": "relViewMode",
         "label": "Mode",
         "options": [
-          { "label": "Text", "value": "text" },
-          { "label": "Pills", "value": "pills" }
+          {
+            "label": "Text",
+            "value": "text"
+          },
+          {
+            "label": "Pills",
+            "value": "pills"
+          }
         ],
         "defaultValue": "text"
       },
