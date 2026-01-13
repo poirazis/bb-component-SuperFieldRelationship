@@ -1,12 +1,13 @@
 {
   "type": "component",
-  "metadata": {},
+  "metadata": {
+    "svelteMajor": 5
+  },
   "schema": {
     "name": "bb-component-SuperFieldRelationship",
     "friendlyName": "Super Field - Relationship",
     "description": "A Relationship Field component for Budibase",
     "icon": "Link",
-
     "settings": [
       {
         "type": "field/link",
@@ -35,13 +36,6 @@
       },
       {
         "type": "text",
-        "label": "Own ID",
-        "key": "ownId",
-        "resetOn": "isSelfReferencing",
-        "dependsOn": "isSelfReferencing"
-      },
-      {
-        "type": "text",
         "label": "Placeholder",
         "key": "placeholder",
         "placeholder": "Choose an option"
@@ -65,13 +59,7 @@
       {
         "type": "event",
         "label": "On change",
-        "key": "onChange",
-        "context": [
-          {
-            "label": "Value",
-            "key": "value"
-          }
-        ]
+        "key": "onChange"
       },
       {
         "type": "filter/relationship",
@@ -98,42 +86,14 @@
         ]
       },
       {
-        "type": "columns",
-        "key": "pickerColumns",
-        "label": "Picker Columns",
-        "resetOn": "tableId",
-        "dependsOn": {
-          "setting": "controlType",
-          "value": "tableSelect"
-        }
-      },
-      {
-        "type": "field",
-        "key": "joinColumn",
-        "label": "Join Column",
-        "resetOn": "tableId",
-        "dependsOn": {
-          "setting": "controlType",
-          "value": "treeSelect"
-        }
-      },
-      {
-        "type": "number",
-        "key": "limitItems",
-        "label": "Limit Items",
-        "defaultValue": 250,
-        "dependsOn": {
-          "setting": "controlType",
-          "value": "select",
-          "invert": true
-        }
-      },
-      {
         "type": "boolean",
         "label": "Wide",
         "key": "wide",
         "defaultValue": false,
-        "dependsOn": { "setting": "controlType", "value": "select" }
+        "dependsOn": {
+          "setting": "controlType",
+          "value": "select"
+        }
       },
       {
         "type": "boolean",
@@ -153,87 +113,9 @@
         }
       },
       {
-        "type": "boolean",
-        "key": "invisible",
-        "label": "Invisible",
-        "defaultValue": false
-      },
-      {
-        "type": "boolean",
-        "label": "Reordering",
-        "key": "reordering",
-        "dependsOn": { "setting": "controlType", "value": "expanded" },
-        "defaultValue": true
-      },
-      {
-        "type": "boolean",
-        "label": "Numbering",
-        "key": "numbering",
-        "dependsOn": { "setting": "controlType", "value": "expanded" },
-        "defaultValue": false
-      },
-      {
-        "type": "boolean",
-        "label": "Create New",
-        "key": "createNew",
-        "dependsOn": { "setting": "controlType", "value": "expanded" },
-        "resetOn": "controlType",
-        "defaultValue": false
-      },
-      {
-        "type": "icon",
+        "type": "phosphorIcon",
         "key": "icon",
         "label": "Inline Icon"
-      },
-      {
-        "type": "buttonConfiguration",
-        "key": "buttons",
-        "nested": true,
-        "wide": true
-      },
-      {
-        "type": "buttonConfiguration",
-        "key": "itemButtons",
-        "label": "Row Actions",
-        "nested": true,
-        "wide": true,
-        "dependsOn": {
-          "setting": "controlType",
-          "value": "expanded"
-        },
-        "context": [
-          {
-            "label": "Row ID",
-            "key": "id"
-          },
-          {
-            "label": "Row Text",
-            "key": "text"
-          }
-        ]
-      },
-      {
-        "type": "event",
-        "label": "On Create New",
-        "key": "onCreateNew",
-        "dependsOn": "createNew"
-      },
-      {
-        "tag": "style",
-        "type": "select",
-        "label": "Field Mode",
-        "key": "role",
-        "defaultValue": "formInput",
-        "options": [
-          {
-            "label": "Form Input",
-            "value": "formInput"
-          },
-          {
-            "label": "Inline Input",
-            "value": "inlineInput"
-          }
-        ]
       },
       {
         "tag": "style",
@@ -272,6 +154,23 @@
       },
       {
         "tag": "style",
+        "type": "select",
+        "label": "Field Mode",
+        "key": "role",
+        "defaultValue": "formInput",
+        "options": [
+          {
+            "label": "Form Input",
+            "value": "formInput"
+          },
+          {
+            "label": "Inline Input",
+            "value": "inlineInput"
+          }
+        ]
+      },
+      {
+        "tag": "style",
         "type": "number",
         "label": "Size",
         "key": "span",
@@ -284,8 +183,14 @@
         "key": "relViewMode",
         "label": "Mode",
         "options": [
-          { "label": "Text", "value": "text" },
-          { "label": "Pills", "value": "pills" }
+          {
+            "label": "Text",
+            "value": "text"
+          },
+          {
+            "label": "Pills",
+            "value": "pills"
+          }
         ],
         "defaultValue": "text"
       },
@@ -294,6 +199,13 @@
         "type": "boolean",
         "key": "showDirty",
         "label": "Show Dirty",
+        "defaultValue": false
+      },
+      {
+        "tag": "style",
+        "type": "boolean",
+        "key": "invisible",
+        "label": "Invisible",
         "defaultValue": false
       }
     ]
